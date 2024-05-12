@@ -2,11 +2,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const multer = require("multer");
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
 const PORT = 3000;
 require("dotenv").config();
 
@@ -21,22 +19,11 @@ const expenseSchema = new mongoose.Schema({
   title: String,
   amount: Number,
   date: String,
-  imageData: String, // Add imageData field to store Base64 data
 });
 
 const Expense = mongoose.model("Expense", expenseSchema);
 
-// Multer storage configuration
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/"); // Save uploaded files to the uploads directory
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  },
-});
-
-const upload = multer({ storage: storage });
+app.use(bodyParser.json());
 
 // API to get all expenses
 app.get("/api/expenses", async (req, res) => {
@@ -49,12 +36,11 @@ app.get("/api/expenses", async (req, res) => {
 });
 
 // API to create a new expense
-app.post("/api/expenses", upload.single("image"), async (req, res) => {
+app.post("/api/expenses", async (req, res) => {
   const expense = new Expense({
     title: req.body.title,
     amount: req.body.amount,
     date: req.body.date,
-    imageData: req.file.path, // Store the path to the uploaded image file
   });
 
   try {
@@ -75,7 +61,6 @@ app.put("/api/expenses/:id", async (req, res) => {
     expense.title = req.body.title;
     expense.amount = req.body.amount;
     expense.date = req.body.date;
-    expense.imageData = req.body.imageData; // Update imageData field
     const updatedExpense = await expense.save();
     res.json(updatedExpense);
   } catch (err) {
