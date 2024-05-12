@@ -2,10 +2,12 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const multer = require("multer");
 
 const app = express();
 app.use(cors());
-const PORT = 3000;
+app.use(bodyParser.json());
+const PORT = process.env.PORT || 3000;
 require("dotenv").config();
 
 // Connect to MongoDB
@@ -24,7 +26,17 @@ const expenseSchema = new mongoose.Schema({
 
 const Expense = mongoose.model("Expense", expenseSchema);
 
-app.use(bodyParser.json());
+// Multer storage configuration
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // Save uploaded files to the uploads directory
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 // API to get all expenses
 app.get("/api/expenses", async (req, res) => {
@@ -37,12 +49,12 @@ app.get("/api/expenses", async (req, res) => {
 });
 
 // API to create a new expense
-app.post("/api/expenses", async (req, res) => {
+app.post("/api/expenses", upload.single("image"), async (req, res) => {
   const expense = new Expense({
     title: req.body.title,
     amount: req.body.amount,
     date: req.body.date,
-    imageData: req.body.imageData, // Store Base64 data in imageData field
+    imageData: req.file.path, // Store the path to the uploaded image file
   });
 
   try {
