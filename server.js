@@ -19,6 +19,7 @@ const expenseSchema = new mongoose.Schema({
   title: String,
   amount: Number,
   date: String,
+  imageData: String, // Add imageData field to store Base64 data
 });
 
 const Expense = mongoose.model("Expense", expenseSchema);
@@ -41,6 +42,7 @@ app.post("/api/expenses", async (req, res) => {
     title: req.body.title,
     amount: req.body.amount,
     date: req.body.date,
+    imageData: req.body.imageData, // Store Base64 data in imageData field
   });
 
   try {
@@ -61,6 +63,7 @@ app.put("/api/expenses/:id", async (req, res) => {
     expense.title = req.body.title;
     expense.amount = req.body.amount;
     expense.date = req.body.date;
+    expense.imageData = req.body.imageData; // Update imageData field
     const updatedExpense = await expense.save();
     res.json(updatedExpense);
   } catch (err) {
