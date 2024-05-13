@@ -16,6 +16,15 @@ mongoose.connect(process.env.MONGODB_URI, {
   useUnifiedTopology: true,
 });
 
+// Define the User1 schema
+const user1Schema = new mongoose.Schema({
+  title: String,
+  amount: Number,
+});
+
+// Create the User1 model
+const User1 = mongoose.model("User1", user1Schema);
+
 // Create Expense schema
 const expenseSchema = new mongoose.Schema({
   title: String,
