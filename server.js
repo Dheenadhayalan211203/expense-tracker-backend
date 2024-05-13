@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const multer = require("multer");
 
 const app = express();
 app.use(cors());
@@ -20,10 +21,22 @@ const expenseSchema = new mongoose.Schema({
   title: String,
   amount: Number,
   date: String,
-  imageData: String,
+  imageData: String, 
 });
 
 const Expense = mongoose.model("Expense", expenseSchema);
+
+// Multer storage configuration
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 // API to get all expenses
 app.get("/api/expenses", async (req, res) => {
@@ -36,18 +49,53 @@ app.get("/api/expenses", async (req, res) => {
 });
 
 // API to create a new expense
-app.post("/api/expenses", async (req, res) => {
-  // Your existing code to add expense
+app.post("/api/expenses", upload.single("image"), async (req, res) => {
+  const expense = new Expense({
+    title: req.body.title,
+    amount: req.body.amount,
+    date: req.body.date,
+    imageData: req.file.path, 
+  });
+
+  try {
+    const newExpense = await expense.save();
+    res.status(201).json(newExpense);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 });
 
 // API to update an expense
 app.put("/api/expenses/:id", async (req, res) => {
-  // Your existing code to update expense
+  try {
+    const expense = await Expense.findById(req.params.id);
+    if (expense == null) {
+      return res.status(404).json({ message: "Expense not found" });
+    }
+    expense.title = req.body.title;
+    expense.amount = req.body.amount;
+    expense.date = req.body.date;
+    expense.imageData = req.body.imageData; 
+    const updatedExpense = await expense.save();
+    res.json(updatedExpense);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 });
 
 // API to delete an expense
 app.delete("/api/expenses/:id", async (req, res) => {
-  // Your existing code to delete expense
+  try {
+    const deletedExpense = await Expense.findOneAndDelete({
+      _id: req.params.id,
+    });
+    if (!deletedExpense) {
+      return res.status(404).json({ message: "Expense not found" });
+    }
+    res.json({ message: "Expense deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // Route to add a product to the "user1" collection
