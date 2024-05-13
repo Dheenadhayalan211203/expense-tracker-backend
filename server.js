@@ -23,7 +23,7 @@ const user1Schema = new mongoose.Schema({
 });
 
 // Create the User1 model
-const User1 = mongoose.model("User1", user1Schema);
+const User1 = mongoose.model("user1", user1Schema);
 
 // Create Expense schema
 const expenseSchema = new mongoose.Schema({
